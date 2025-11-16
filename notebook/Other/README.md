@@ -1,8 +1,5 @@
 I am adding notebook related to ML and GenAI.
 
-We have multiple mofule from which we can split test and training data.
-
-
 Rule of Thumb
 
 Big dataset → train_test_split is usually enough.
