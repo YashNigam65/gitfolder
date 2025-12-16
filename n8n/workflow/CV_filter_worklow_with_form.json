@@ -1,0 +1,302 @@
+{
+  "name": "CV_filter_worklow",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "chooseBranch"
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        288,
+        -16
+      ],
+      "id": "b20edc2b-0240-4baa-b84b-cc37a73db895",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "79dca875-ef11-4c04-aaa3-a7930ff5f4d0",
+              "name": "jd_text",
+              "value": "={{ $node['Extract_JD'].json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "f923b3b4-d3a1-4225-bb08-ee6c602b363b",
+              "name": "=cv_text",
+              "value": "={{ $node['Extract_CV'].json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "2bd94f77-6642-46c5-adb9-a981584f44b5",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        -16
+      ],
+      "id": "391a9573-a294-477c-877e-2dee60ebdfeb",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "JD_file",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        -96
+      ],
+      "id": "8b07cbd2-216d-486b-95da-c82a5bdbe51f",
+      "name": "Extract_JD"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "CV_file",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        96
+      ],
+      "id": "52b79d0f-be4b-45cd-8dbf-1a9ebf642005",
+      "name": "Extract_CV"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Instruction: \nYou are an expert resume evaluator.\n\nI will provide you with:\n\n1. Job Description (JD) : {{ $json.jd_text }}\n\n2. Candidate Resume : {{ $json.cv_text }}\n\nYour task:\n\n- Compare the resume against the JD.\n- Identify skill match, experience match, technology match, and role responsibilities match.\n- Calculate a match percentage (0–100%) based on how closely the resume aligns with the JD.\n- Then give the final result using the following rules:\n\nIf matched % >= 80:\n   result : most suitable candidate\n   matched % : <percentage>\n\nIf matched % >= 60 and < 80:\n   result : suitable candidate\n   matched % : <percentage>\n\nIf matched % < 60:\n   result : not suitable candidate\n   matched % : <percentage>\n\nOutput Format: need json as output (Strictly follow this):\nname : <candidate name>\nContact number: <candidate contact number>\nresult : <result_text>\nmatched % : <percentage>\nmatched skill: <list of skill from grater to lower matched percentage>",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert resume evaluator. compare JD and CV fairly."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        704,
+        -16
+      ],
+      "id": "49597227-6942-4466-a8f6-ea14b1883096",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        704,
+        208
+      ],
+      "id": "ab13dc88-1a5f-48d4-a918-548430ae3543",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7awnmD3oiqxAlteq",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "binaryPropertyName": "=result",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1088,
+        -16
+      ],
+      "id": "0b40f7fa-578b-428e-9cae-6892b1d8d9de",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "E:/Study/genAI/n8n/resume_repo/result.json",
+        "dataPropertyName": "=result",
+        "options": {
+          "append": true
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        -16
+      ],
+      "id": "408a15f3-ccf3-43ac-8495-c48b20b092d1",
+      "name": "Write Files to Disk"
+    },
+    {
+      "parameters": {
+        "formTitle": "Upload pdf files here",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "JD file",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "CV file",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -288,
+        0
+      ],
+      "id": "d5213675-833c-4ca4-a23e-3032e9e442b4",
+      "name": "On form submission",
+      "webhookId": "362cbd41-1e86-4694-8666-ae7f09d0a3d5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract_JD": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract_CV": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Write Files to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Files to Disk": {
+      "main": [
+        []
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Extract_JD",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract_CV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "60ad19e9-8a76-4349-858c-ba433b94cb61",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b80a822ac6c5948f9719e818c72c008f5596eea8f39d8a93a0398d5e7c4e8e9d"
+  },
+  "id": "jt96LFkqype40o8u",
+  "tags": []
+}

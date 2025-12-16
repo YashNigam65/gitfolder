@@ -1,0 +1,16 @@
+If It's Running in the Background (No Terminal Visible):
+
+Open Task Manager (Ctrl + Shift + Esc).
+Go to the "Processes" tab.
+Look for "ollama.exe" or "Ollama" in the list.
+Right-click it and select "End Task" to kill the process.
+Via Command Line (Advanced):
+
+Run: netstat -ano | findstr 11434 to find the Process ID (PID) using port 11434.
+Then: taskkill /PID <PID> /F (replace <PID> with the number from the output).
+
+
+Test Again:
+
+Run: genAI\Scripts\python.exe query.py
+Enter your query.
